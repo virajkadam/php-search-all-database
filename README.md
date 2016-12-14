@@ -21,5 +21,3 @@ Call this awesome function `php_search_all_database("Keyword to search", "Table 
 ```
 php_search_all_database($search_keyword, $table_array); // call this Awesomme function
 ```
-
-@virajkadam
