@@ -8,16 +8,16 @@ With this code, you can search entire database with narrowing down the Tables &a
 ##Here's how to use the function:
 
 Assign `keyword to search` to varible `$search_keyword`
-```
+```php
 $search_keyword = "keyword";                            // search Keyword
 ```
 
 Enter `table names` in varible `$table_array` to search the given keyword
-```
+```php
 $table_array = ['',''];                                 // table names in array format
 ```
 
 Call this awesome function `php_search_all_database("Keyword to search", "Table name array")` as below
-```
+```php
 php_search_all_database($search_keyword, $table_array); // call this Awesomme function
 ```
