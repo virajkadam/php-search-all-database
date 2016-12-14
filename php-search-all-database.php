@@ -21,7 +21,7 @@ function php_search_all_database($search_keyword,$table_array){
 
 		$rt = $table_array;
 		echo "<b>Given Keyword :</b> ".$search_keyword . '<br>';
-		echo "<b>Given tables :</b> ".implode($rt,', ') . '<br>';
+		echo "<b>Given tables :</b> " . implode($rt,', ') . '<br>';
 
 		if(count($rt) > 0){ 							// check weather table column is not empty
 			foreach($rt as $r){ 						// iterate column name table
@@ -43,7 +43,7 @@ function php_search_all_database($search_keyword,$table_array){
 							while($r3 = $rs3->fetch_array()){ 	// fetch result from respective data
 								$count++;
 								echo "<li> Column Name : " . $colum . "</li>";
-								echo "<li> Row id : " . $r3['id'] . "</li>";	// primary key column name
+								echo "<li> Row  : " . $r3['id'] . "</li>";	// primary key column name
 								echo "<li> Value : " . $r3[$colum] . "</li><br>";
 							}
 						
