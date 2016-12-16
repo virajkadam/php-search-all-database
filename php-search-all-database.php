@@ -11,7 +11,7 @@ function php_search_all_database($search_keyword,$table_array){
 	$db_hostname = ''; 					// database hostname (default value: localhost)
 	$db_username = ''; 					// database username (default value: root)
 	$db_password = ''; 					// database password (default value: password)
-	$db_database_name = ''; 			// database name
+	$db_database_name = ''; 				// database name
 
 	$conn = mysqli_connect($db_hostname, $db_username, $db_password, $db_database_name);
 	
