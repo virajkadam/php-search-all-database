@@ -49,7 +49,7 @@ function php_search_all_database($search_keyword,$table_ass_array){
 						while($r3 = $rs3->fetch_array()){ 	// fetch result from respective data
 							$count++;
 							echo "<li> Column Name : " . $colum . "</li>";
-							echo "<li> Row  : " . $r3['u_id'] . "</li>";	// primary key column name
+							echo "<li> Row  : " . $r3['ROW ID'] . "</li>";	// primary key column name
 							echo "<li> Value : " . $r3[$colum] . "</li><br>";
 						}
 
