@@ -1,25 +1,30 @@
 <?php
-$time_start = microtime(true);
+$search_keyword = "KEYWORD";			// search Keyword
+$table_ass_array = array( 
+			'TABLE NAME 1' => array( 			// TABLENAME 1 to search in
+							'COLUMNNAME_A',		// Column Name A to search in
+							'COLUMNNAME_B'		// Column Name B to search in
+						),
+			'TABLE NAME 2' => array(			// TABLENAME 2 to search in
+							'COLUMNNAME_A',		// Column Name A to search in
+							'COLUMNNAME_B'		// Column Name B to search in
+						)
+			);
 
-$search_keyword = "Rafah"; 		// search Keyword
-// $table_array = ['users','users_child'];					// table names in array format
-$table_ass_array = array('city'=>array('CountryCode','Name'));
-									//,'users_child'=>array('uc_gender','uc_name'));
-print_r($table_ass_array);
-php_search_all_database($search_keyword, $table_ass_array); // call this Awesomme function
+php_search_all_database($search_keyword, $table_ass_array);		// call this Awesomme function
 
 function php_search_all_database($search_keyword,$table_ass_array){
 
 	global $conn;
 
-	$db_hostname = 'localhost'; 					// database hostname (default value: localhost)
-	$db_username = 'root'; 					// database username (default value: root)
-	$db_password = 'password'; 					// database password (default value: password)
-	$db_database_name = 'world'; 				// database name
+	$db_hostname = 'DATABASE HOST NAME'; 				// database hostname (default value: localhost)
+	$db_username = 'DATABASE USERNAME'; 				// database username (default value: root)
+	$db_password = 'DATABASE PASSWORD'; 				// database password (default value: password)
+	$db_database_name = 'DATABASE NAME'; 				// database name
 
 	$conn = mysqli_connect($db_hostname, $db_username, $db_password, $db_database_name);
 
-		if(mysqli_connect_errno()){					// Check connection
+		if(mysqli_connect_errno()){		// Check connection
 			echo "Failed to connect to MySQL: " . mysqli_connect_error();
 		}
 
@@ -33,7 +38,7 @@ function php_search_all_database($search_keyword,$table_ass_array){
 				echo $v;
 				foreach($v as $r2){	// fetch data from respective column name
 
-					$colum = $r2;//[0];
+					$colum = $r2;	//[0];
 					$sql_search_fields = $colum . " LIKE ('%" . $search_keyword . "%')";
 					$sql_search = "SELECT * FROM " . $table . " WHERE " . $sql_search_fields;
 					$rs3 = $conn->query($sql_search);
@@ -51,10 +56,8 @@ function php_search_all_database($search_keyword,$table_ass_array){
 					}
 					echo "</ul>";
 				}
-				echo $table." searching is end here<hr>";
+				echo $table." Searching End's Here<hr>";
 			}
 
 		}
 }
-
-echo "<br><br>Time = ".(microtime(true)-$time_start);
