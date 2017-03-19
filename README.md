@@ -5,7 +5,7 @@ With this code, you can search entire database with narrowing down the Tables &a
 
 # Usage
 
-##Here's how to use the function:
+## Here's how to use the function:
 
 Assign `keyword to search` to varible `$search_keyword`
 ```php
@@ -17,15 +17,14 @@ Enter `table names` & their repective `column names` in an associative array `$t
 
 $table_ass_array = array( 
 			'TABLE NAME 1' => array( 			// TABLENAME 1 to search in
-						'COLUMNNAME_A',		// Column Name A to search in
-						'COLUMNNAME_B'		// Column Name B to search in
+						'COLUMNNAME_A',			// Column Name A to search in
+						'COLUMNNAME_B'			// Column Name B to search in
 						),
 			'TABLE NAME 2' => array(			// TABLENAME 2 to search in
-						'COLUMNNAME_A',		// Column Name A to search in
-						'COLUMNNAME_B'		// Column Name B to search in
+						'COLUMNNAME_A',			// Column Name A to search in
+						'COLUMNNAME_B'			// Column Name B to search in
 						)
 			);
-      // table names in array format
 ```
 
 Call this awesome function `php_search_all_database("Keyword to search", "Table name array")` as below
