@@ -51,13 +51,17 @@ function php_search_all_database($search_keyword,$table_ass_array){
 							echo "<li> Column Name : " . $colum . "</li>";
 							echo "<li> Row  : " . $r3['ROW ID'] . "</li>";	// primary key column name
 							echo "<li> Value : " . $r3[$colum] . "</li><br>";
-						}
+						
+						}	// while loop close
 
-					}
+					}	// table data count close
 					echo "</ul>";
-				}
-				echo $table." Searching End's Here<hr>";
-			}
 
-		}
+				}	//foreach close
+
+				echo $table." Searching End's Here<hr>";
+
+			}	//foreach close
+
+		}	// Table count close
 }
