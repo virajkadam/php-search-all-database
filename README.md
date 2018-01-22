@@ -1,11 +1,11 @@
 # PHP Search All Database
-With this code, you can search entire database,By narrowing down the Tables &amp; Column to search in. Giving the flexibility to developer and efficiency to execute faster searches by lowering down the traversing nodes.<br/>
+With this code, you can search entire database, by narrowing down the tables &amp; column to search in. Giving the flexibility to developer and efficiency to execute faster searches by lowering down the traversing nodes.<br/>
 <li>Sample, Easy & Efficient searching.</li>
 <li>User friendly - pass parameters and get started</li>
 
 # Usage
 
-## Here's how to use the function:
+## How to use:
 
 Assign `keyword to search` to varible `$search_keyword`
 ```php
