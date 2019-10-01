@@ -15,14 +15,14 @@ php_search_all_database($search_keyword, $table_ass_array);		// call this Awesom
 
 function php_search_all_database($search_keyword,$table_ass_array){
 
-	global $conn;
+	global $conn;							// declared global variable conn
 
 	$db_hostname = 'DATABASE HOST NAME'; 				// database hostname (default value: localhost)
 	$db_username = 'DATABASE USERNAME'; 				// database username (default value: root)
 	$db_password = 'DATABASE PASSWORD'; 				// database password (default value: password)
 	$db_database_name = 'DATABASE NAME'; 				// database name
 
-	$conn = mysqli_connect($db_hostname, $db_username, $db_password, $db_database_name);
+	$conn = mysqli_connect($db_hostname, $db_username, $db_password, $db_database_name);	// create connection
 
 		if(mysqli_connect_errno()){		// Check connection
 			echo "Failed to connect to MySQL: " . mysqli_connect_error();
