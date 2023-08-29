@@ -1,5 +1,5 @@
 # PHP Search All Database
-This code can search entire database, by narrowing down the tables &amp; columns to search in. Giving the flexibility and high performance execution to execute faster searches by lowering down the traversing nodes.<br/>
+This code can search the entire database, by narrowing down the tables &amp; columns to search in. Giving flexibility and high-performance execution to execute faster searches by lowering the traversing nodes.<br/>
 <li>Simple PHP Searching tool</li>
 <li>User friendly - Plug and Play</li>
 <li>Tiny PHP search engine</li>
@@ -7,13 +7,13 @@ This code can search entire database, by narrowing down the tables &amp; columns
 # How to use:
 
 
-Assign keyword to search to varible `$search_keyword`
+Assign keyword to search to variable `$search_keyword`
 
 ```php
 $search_keyword = "KEYWORD";						// Enter keyword to search
 ```
 
-Enter `table names` & their repective `column names` in an associative array `$table_associative_array` to search the `given keyword`.
+Enter `table names` & their respective `column names` in an associative array `$table_associative_array` to search the `given keyword`.
 
 ```php
 $table_associative_array = array( 
@@ -28,7 +28,7 @@ $table_associative_array = array(
 		);
 ```
 
-Call this awesome function, with two parameters `php_search_all_database( "Keyword to search" , "Table name array" )` as below
+Call this fantastic function, with two parameters `php_search_all_database( "Keyword to search", "Table name array" )` as below
 
 ```php
 php_search_all_database( $search_keyword, $table_associative_array );	// call this Awesome function to run script
