@@ -50,11 +50,11 @@ function php_search_all_database($search_keyword,$table_associative_array){
 				foreach($columnn_name AS $column){				// Fetch data from array of column names
 
 					$db_search_result_fields = $column." LIKE ('%".$search_keyword."%')";		// We have used wildcards as an example, You can replace as per your need
-					$db_search_result = $conn->query("SELECT * FROM ".$table." WHERE ".$db_search_result_fields);
+					$db_search_result = $conn->query("SELECT * FROM ".$table_name." WHERE ".$db_search_result_fields);
 
 					if($db_search_result->num_rows > 0){ 			// Check weather 'keyword' found or not
 
-						echo "<ul><u>Table :".$table.'</u>';
+						echo "<ul><u>Table :".$table_name.'</u>';
 
 						while( $row = $db_search_result->fetch_array() ){ 	// Fetch final result from records found
 							$count++;
@@ -70,7 +70,7 @@ function php_search_all_database($search_keyword,$table_associative_array){
 
 				}	// End of foreach of data fetching of every column
 
-				echo $table." search End's Here<hr><br>";
+				echo $table_name." search End's Here<hr><br>";
 
 			}	// End of foreach of data fetching of every table
 
