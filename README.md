@@ -1,39 +1,48 @@
 # PHP Search All Database
-This code can search the entire database, by narrowing down the tables &amp; columns to search in. Giving flexibility and high-performance execution to execute faster searches by lowering the traversing nodes.<br/>
-<li>Simple PHP Searching tool</li>
-<li>User friendly - Plug and Play</li>
-<li>Tiny PHP search engine</li>
 
-# How to use:
+A lightweight PHP script to search multiple MySQL tables/columns using a simple configuration.
 
+## Latest updates
 
-Assign keyword to search to variable `$search_keyword`
+- Resolved merge-style divergence and kept a single clean implementation.
+- Kept the main optimization: **one prepared query per table** using OR-ed `LIKE` conditions.
+- Added/kept **relevant inline comments** for setup, optimization, and output behavior.
+- Added strict **table/column identifier validation** (`[A-Za-z0-9_]`) before query construction.
+- Added optional `$row_identifier_column` support to print row id values when available.
+- Kept HTML escaping for safer browser output.
 
-```php
-$search_keyword = "KEYWORD";						// Enter keyword to search
-```
+## Configure
 
-Enter `table names` & their respective `column names` in an associative array `$table_associative_array` to search the `given keyword`.
-
-```php
-$table_associative_array = array( 
-			'TABLE NAME 1' => array(			// TABLENAME 1 to search in
-				'columnN_NAME_A',			// column Name A to search in
-				'columnN_NAME_B'			// column Name B to search in
-			),
-			'TABLE NAME 2' => array(			// TABLENAME 2 to search in
-				'columnN_NAME_A',			// column Name A to search in
-				'columnN_NAME_B'			// column Name B to search in
-			)
-		);
-```
-
-Call this fantastic function, with two parameters `php_search_all_database( "Keyword to search", "Table name array" )` as below
+In `php-search-all-database.php`, set:
 
 ```php
-php_search_all_database( $search_keyword, $table_associative_array );	// call this Awesome function to run script
+$search_keyword = 'KEYWORD';
+
+$table_associative_array = [
+    'TABLE_NAME_1' => ['column_name_a', 'column_name_b'],
+    'TABLE_NAME_2' => ['column_name_a', 'column_name_b'],
+];
+
+$row_identifier_column = 'id'; // Set null to hide row id
 ```
 
+Also update DB credentials inside `php_search_all_database()`:
 
+```php
+$db_hostname = 'DATABASE HOST NAME';
+$db_username = 'DATABASE USERNAME';
+$db_password = 'DATABASE PASSWORD';
+$db_database_name = 'DATABASE NAME';
+```
 
-Please STAR if you like this script.
+## Run
+
+```php
+php_search_all_database($search_keyword, $table_associative_array, $row_identifier_column);
+```
+
+## Notes
+
+- Script remains schema-agnostic and uses `SELECT *`.
+- Add indexes on searched columns for better performance on large datasets.
+- `mysqli_stmt_get_result()` requires mysqlnd support.
