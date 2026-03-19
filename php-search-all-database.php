@@ -1,79 +1,125 @@
 <?php
 
-$search_keyword = "KEYWORD";						// Enter keyword to search
+$search_keyword = 'KEYWORD'; // Keyword to search for in configured columns.
 
-$table_associative_array = array( 
-			'TABLE NAME 1' => array(			// TABLENAME 1 to search in
-				'columnN_NAME_A',			// column Name A to search in
-				'columnN_NAME_B'			// column Name B to search in
-			),
-			'TABLE NAME 2' => array(			// TABLENAME 2 to search in
-				'columnN_NAME_A',			// column Name A to search in
-				'columnN_NAME_B'			// column Name B to search in
-			)
-		);
+// Tables and columns to search.
+// Keys are table names, values are the searchable columns for each table.
+$table_associative_array = [
+    'TABLE_NAME_1' => [
+        'column_name_a',
+        'column_name_b',
+    ],
+    'TABLE_NAME_2' => [
+        'column_name_a',
+        'column_name_b',
+    ],
+];
 
+php_search_all_database($search_keyword, $table_associative_array);
 
-php_search_all_database( $search_keyword, $table_associative_array );	// call this Awesome function to run script
+/**
+ * Searches configured tables/columns for a keyword.
+ *
+ * Optimization notes:
+ * - Executes one query per table (using OR conditions) instead of one query per column.
+ * - Uses prepared statements for keyword values.
+ * - Escapes table/column identifiers defensively.
+ *
+ * @param string $search_keyword Keyword to search for.
+ * @param array<string, array<int, string>> $table_associative_array Table => columns mapping.
+ */
+function php_search_all_database($search_keyword, $table_associative_array)
+{
+    $db_hostname = 'DATABASE HOST NAME';
+    $db_username = 'DATABASE USERNAME';
+    $db_password = 'DATABASE PASSWORD';
+    $db_database_name = 'DATABASE NAME';
 
+    $conn = mysqli_connect($db_hostname, $db_username, $db_password, $db_database_name);
 
+    if (!$conn) {
+        echo 'Failed to connect to MySQL: ' . mysqli_connect_error();
+        return;
+    }
 
-function php_search_all_database($search_keyword,$table_associative_array){
+    if (trim($search_keyword) === '') {
+        echo 'Please provide a non-empty keyword.';
+        return;
+    }
 
-	global $conn;		// Declared global variable to store database connection
+    if (empty($table_associative_array)) {
+        echo 'No tables configured to search.';
+        return;
+    }
 
-	$db_hostname = 'DATABASE HOST NAME';		// Database hostname (default value: localhost)
-	$db_username = 'DATABASE USERNAME'; 		// Database username (default value: root)
-	$db_password = 'DATABASE PASSWORD'; 		// Database password
-	$db_database_name = 'DATABASE NAME'; 		// Database name
+    echo '<b>Given Keyword:</b> ' . htmlspecialchars($search_keyword, ENT_QUOTES, 'UTF-8') . '<br>';
+    echo '<b>Given tables:</b> ' . htmlspecialchars(implode(', ', array_keys($table_associative_array)), ENT_QUOTES, 'UTF-8') . '<br><hr>';
 
-	$conn = mysqli_connect($db_hostname, $db_username, $db_password, $db_database_name);	// Establish Database Connection
+    $totalMatches = 0;
+    $likeValue = '%' . $search_keyword . '%';
 
-		if(mysqli_connect_errno()){		// Check if database connection is ok
-			echo "Failed to connect to MySQL: ".mysqli_connect_error();
-		}
+    foreach ($table_associative_array as $table_name => $column_names) {
+        if (empty($column_names)) {
+            continue;
+        }
 
+        // Escape identifiers for MySQL (tables/columns cannot be bound as prepared statement params).
+        $safeTable = '`' . str_replace('`', '``', $table_name) . '`';
 
-		echo "<b>Given Keyword :</b> ".$search_keyword.'<br>';
-		echo "<b>Given tables :</b> ".implode($table_associative_array,', ').'<br>';
+        $whereClauses = [];
+        $params = [];
+        $types = '';
 
+        foreach ($column_names as $column) {
+            $safeColumn = '`' . str_replace('`', '``', $column) . '`';
+            $whereClauses[] = $safeColumn . ' LIKE ?';
+            $params[] = $likeValue;
+            $types .= 's';
+        }
 
-		if(count($table_associative_array) > 0){					// Check weather array of tables names and column names is not empty
+        $sql = 'SELECT * FROM ' . $safeTable . ' WHERE ' . implode(' OR ', $whereClauses);
+        $stmt = mysqli_prepare($conn, $sql);
 
-			foreach($table_associative_array AS $table_name => $columnn_name){ 	// Iterate through array of table names
+        if (!$stmt) {
+            echo '<b>Table:</b> ' . htmlspecialchars($table_name, ENT_QUOTES, 'UTF-8') . ' - query prepare failed.<br>';
+            continue;
+        }
 
-				echo $table_name;						// Name of table
-				echo "<br>";
-				echo $columnn_name;						// Name of Column in this table
-				echo "<br><br>";
+        mysqli_stmt_bind_param($stmt, $types, ...$params);
 
-				foreach($columnn_name AS $column){				// Fetch data from array of column names
+        if (!mysqli_stmt_execute($stmt)) {
+            echo '<b>Table:</b> ' . htmlspecialchars($table_name, ENT_QUOTES, 'UTF-8') . ' - query execution failed.<br>';
+            mysqli_stmt_close($stmt);
+            continue;
+        }
 
-					$db_search_result_fields = $column." LIKE ('%".$search_keyword."%')";		// We have used wildcards as an example, You can replace as per your need
-					$db_search_result = $conn->query("SELECT * FROM ".$table_name." WHERE ".$db_search_result_fields);
+        $result = mysqli_stmt_get_result($stmt);
 
-					if($db_search_result->num_rows > 0){ 			// Check weather 'keyword' found or not
+        echo '<h4>Table: ' . htmlspecialchars($table_name, ENT_QUOTES, 'UTF-8') . '</h4>';
 
-						echo "<ul><u>Table :".$table_name.'</u>';
+        if ($result && mysqli_num_rows($result) > 0) {
+            while ($row = mysqli_fetch_assoc($result)) {
+                echo '<ul>';
 
-						while( $row = $db_search_result->fetch_array() ){ 	// Fetch final result from records found
-							$count++;
-							echo "<li>Column Name: ".$column."</li>";	// Respective column Name
-							echo "<li>Row: ".$row['ROW ID']."</li>";	// Primary key of respective table name, For example id/rowId
-							echo "<li>Value: ".$row[$column]."</li><br>";	// Data stored in respective columns. i.e. The actual keyword we found
+                foreach ($column_names as $column) {
+                    if (isset($row[$column]) && stripos((string)$row[$column], $search_keyword) !== false) {
+                        $totalMatches++;
+                        echo '<li><b>Column:</b> ' . htmlspecialchars($column, ENT_QUOTES, 'UTF-8') . '</li>';
+                        echo '<li><b>Value:</b> ' . htmlspecialchars((string)$row[$column], ENT_QUOTES, 'UTF-8') . '</li>';
+                    }
+                }
 
-						}	// End of while loop of final result 
+                echo '</ul>';
+            }
+        } else {
+            echo 'No matches found.<br>';
+        }
 
-						echo "</ul>";
+        echo '<hr>';
+        mysqli_stmt_close($stmt);
+    }
 
-					}	// End of if condition to check table data count
+    echo '<b>Total matched values:</b> ' . $totalMatches;
 
-				}	// End of foreach of data fetching of every column
-
-				echo $table_name." search End's Here<hr><br>";
-
-			}	// End of foreach of data fetching of every table
-
-		}	// End of if condition to check empty input data
-
-	}	// Awesome function ends
+    mysqli_close($conn);
+}
