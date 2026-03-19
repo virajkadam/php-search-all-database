@@ -8,87 +8,81 @@ $table_associative_array = [
     'TABLE_NAME_2' => ['column_name_a', 'column_name_b'],
 ];
 
-// Optional row-id column to display in output. Set null to hide row id.
+// Optional row-id column (set null to hide)
 $row_identifier_column = 'id';
 
 php_search_all_database($search_keyword, $table_associative_array, $row_identifier_column);
 
 /**
- * Search a keyword across configured table/column pairs.
- *
- * @param string $search_keyword Keyword to search.
- * @param array<string, array<int, string>> $table_associative_array Table => columns mapping.
- * @param string|null $row_identifier_column Optional row-id column to print.
- * @return void
+ * Search keyword across multiple tables/columns.
  */
 function php_search_all_database($search_keyword, $table_associative_array, $row_identifier_column = 'id')
 {
-    $db_hostname = 'DATABASE HOST NAME';
-    $db_username = 'DATABASE USERNAME';
-    $db_password = 'DATABASE PASSWORD';
-    $db_database_name = 'DATABASE NAME';
+    $conn = mysqli_connect('DATABASE HOST NAME', 'DATABASE USERNAME', 'DATABASE PASSWORD', 'DATABASE NAME');
 
-    $conn = mysqli_connect($db_hostname, $db_username, $db_password, $db_database_name);
     if (!$conn) {
-        echo 'Failed to connect to MySQL: ' . mysqli_connect_error();
+        echo 'DB Connection Failed: ' . mysqli_connect_error();
         return;
     }
 
     if (trim($search_keyword) === '') {
-        echo 'Please provide a non-empty keyword.';
+        echo 'Keyword cannot be empty.';
         mysqli_close($conn);
         return;
     }
 
     if (empty($table_associative_array)) {
-        echo 'No tables configured to search.';
+        echo 'No tables configured.';
         mysqli_close($conn);
         return;
     }
 
-    echo '<b>Given Keyword:</b> ' . e($search_keyword) . '<br>';
-    echo '<b>Given tables:</b> ' . e(implode(', ', array_keys($table_associative_array))) . '<br><hr>';
+    echo '<b>Keyword:</b> ' . e($search_keyword) . '<br>';
+    echo '<b>Tables:</b> ' . e(implode(', ', array_keys($table_associative_array))) . '<br><hr>';
 
     $total_matches = 0;
     $like_value = '%' . $search_keyword . '%';
 
     foreach ($table_associative_array as $table_name => $columns) {
-        $safe_table_name = sanitize_identifier($table_name);
+
+        $safe_table = sanitize_identifier($table_name);
         $safe_columns = sanitize_identifiers($columns);
 
-        if ($safe_table_name === null || empty($safe_columns)) {
-            echo '<b>Skipped:</b> Invalid table/column config for <i>' . e((string)$table_name) . '</i>.<br><hr>';
+        if ($safe_table === null || empty($safe_columns)) {
+            echo 'Invalid table/columns: ' . e($table_name) . '<br><hr>';
             continue;
         }
 
-        // Optimization: one prepared query per table (OR over all configured columns).
-        $where_clauses = [];
-        $param_types = '';
+        // Build WHERE clause
+        $where = [];
+        $types = '';
         $params = [];
 
-        foreach ($safe_columns as $column) {
-            $where_clauses[] = '`' . $column . '` LIKE ?';
-            $param_types .= 's';
+        foreach ($safe_columns as $col) {
+            $where[] = "`$col` LIKE ?";
+            $types .= 's';
             $params[] = $like_value;
         }
 
-        $sql = 'SELECT * FROM `' . $safe_table_name . '` WHERE ' . implode(' OR ', $where_clauses);
+        $sql = "SELECT * FROM `$safe_table` WHERE " . implode(' OR ', $where);
+
         $stmt = mysqli_prepare($conn, $sql);
 
         if (!$stmt) {
-            echo '<b>Table:</b> ' . e($table_name) . ' - query prepare failed.<br><hr>';
+            echo 'Prepare failed: ' . e($table_name) . '<br><hr>';
             continue;
         }
 
-        mysqli_stmt_bind_param($stmt, $param_types, ...$params);
+        mysqli_stmt_bind_param($stmt, $types, ...$params);
 
         if (!mysqli_stmt_execute($stmt)) {
-            echo '<b>Table:</b> ' . e($table_name) . ' - query execution failed.<br><hr>';
+            echo 'Execution failed: ' . e($table_name) . '<br><hr>';
             mysqli_stmt_close($stmt);
             continue;
         }
 
         $result = mysqli_stmt_get_result($stmt);
+
         echo '<h4>Table: ' . e($table_name) . '</h4>';
 
         if (!$result || mysqli_num_rows($result) === 0) {
@@ -98,31 +92,32 @@ function php_search_all_database($search_keyword, $table_associative_array, $row
         }
 
         while ($row = mysqli_fetch_assoc($result)) {
-            $has_match_in_row = false;
-            $row_html = '';
 
-            foreach ($safe_columns as $column) {
-                if (!isset($row[$column])) {
-                    continue;
+            $matched = false;
+            $html = '';
+
+            foreach ($safe_columns as $col) {
+                if (!isset($row[$col])) continue;
+
+                $value = (string)$row[$col];
+
+                if (stripos($value, $search_keyword) !== false) {
+                    $matched = true;
+                    $total_matches++;
+
+                    $html .= '<li><b>Column:</b> ' . e($col) . '</li>';
+                    $html .= '<li><b>Value:</b> ' . e($value) . '</li>';
                 }
-
-                $value = (string)$row[$column];
-                if (stripos($value, $search_keyword) === false) {
-                    continue;
-                }
-
-                $has_match_in_row = true;
-                $total_matches++;
-                $row_html .= '<li><b>Column:</b> ' . e($column) . '</li>';
-                $row_html .= '<li><b>Value:</b> ' . e($value) . '</li>';
             }
 
-            if ($has_match_in_row) {
+            if ($matched) {
                 echo '<ul>';
+
                 if ($row_identifier_column !== null && isset($row[$row_identifier_column])) {
-                    echo '<li><b>Row:</b> ' . e((string)$row[$row_identifier_column]) . '</li>';
+                    echo '<li><b>Row:</b> ' . e($row[$row_identifier_column]) . '</li>';
                 }
-                echo $row_html;
+
+                echo $html;
                 echo '</ul>';
             }
         }
@@ -132,51 +127,38 @@ function php_search_all_database($search_keyword, $table_associative_array, $row
         echo '<hr>';
     }
 
-    echo '<b>Total matched values:</b> ' . $total_matches;
+    echo '<b>Total Matches:</b> ' . $total_matches;
+
     mysqli_close($conn);
 }
 
 /**
- * Validate one SQL identifier.
- * Allowed chars: letters, numbers, underscore.
- *
- * @param mixed $name
- * @return string|null
+ * Validate SQL identifier (table/column)
  */
 function sanitize_identifier($name)
 {
-    if (!is_string($name)) {
-        return null;
-    }
-
-    return preg_match('/^[A-Za-z0-9_]+$/', $name) ? $name : null;
+    return (is_string($name) && preg_match('/^[A-Za-z0-9_]+$/', $name)) ? $name : null;
 }
 
 /**
- * Validate and deduplicate a list of SQL identifiers.
- *
- * @param array<int, mixed> $names
- * @return array<int, string>
+ * Validate multiple identifiers
  */
 function sanitize_identifiers($names)
 {
-    $output = [];
+    $valid = [];
 
     foreach ($names as $name) {
-        $validated_name = sanitize_identifier($name);
-        if ($validated_name !== null) {
-            $output[$validated_name] = $validated_name;
+        $clean = sanitize_identifier($name);
+        if ($clean !== null) {
+            $valid[$clean] = $clean;
         }
     }
 
-    return array_values($output);
+    return array_values($valid);
 }
 
 /**
- * Escape output for safe HTML rendering.
- *
- * @param string $value
- * @return string
+ * Safe HTML output
  */
 function e($value)
 {
